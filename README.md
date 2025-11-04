@@ -5,8 +5,7 @@
 <h1 align="center">💬 Ollama Chatbox Suite – Zenity & Cloud Edition</h1>
 <p align="center">
   <strong>A multi-interface AI suite for Ollama built by <a href="https://www.cyberglobal.ai">Cyber Global Technologies LLC</a>.</strong><br>
-  Zenity GUI • Terminal Chat • Web Mini Chat — all in one lightweight suite for Linux.<br>
-  <a href="https://ko-fi.com/gusinfosec">Ko-fi</a> • <a href="https://github.com/gusinfosec">GitHub</a> • <a href="https://www.linkedin.com/in/gusinfosec">LinkedIn</a>
+  
 </p>
 
 <p align="center">
