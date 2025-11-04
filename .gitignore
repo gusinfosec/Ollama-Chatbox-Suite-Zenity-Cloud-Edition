@@ -1,0 +1,45 @@
+# === System files ===
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# === Logs & temp files ===
+*.log
+*.tmp
+*.bak
+*.swp
+*.swo
+
+# === Python local server cache ===
+__pycache__/
+*.pyc
+
+# === Shell scripts (private/pro builds) ===
+start-server-pro.sh
+*-pro.sh
+pro.sh
+secret_*.sh
+
+# === Bundled archives (Ko-fi or release zips) ===
+*.zip
+*.tar.gz
+*.7z
+
+# === Editor / IDE files ===
+.vscode/
+.idea/
+*.code-workspace
+
+# === OS & runtime ===
+nohup.out
+.env
+*.pid
+
+# === Build artifacts ===
+dist/
+build/
+node_modules/
+
+# === Backup folders ===
+backup/
+Backups/
