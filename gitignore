@@ -1,0 +1,57 @@
+# Node, Python, and system clutter
+__pycache__/
+*.py[cod]
+*.so
+*.log
+*.tmp
+*.swp
+*.bak
+*.DS_Store
+*.lock
+
+# Editor folders
+.vscode/
+.idea/
+*.code-workspace
+
+# System-specific
+Thumbs.db
+.DS_Store
+ehthumbs.db
+desktop.ini
+
+# Ollama and model cache
+.ollama/
+ollama.log
+ollama.db
+
+# Python HTTP server artifacts
+*.pid
+*.cache/
+*.sqlite3
+
+# Generated zips or archives
+*.zip
+*.tar.gz
+*.tgz
+*.7z
+
+# Backup files
+*~
+*.old
+*.orig
+*.backup
+
+# Credentials or tokens (protects login sessions)
+.env
+*.key
+*.pem
+*.crt
+*.cert
+*.token
+
+# Local testing and debug outputs
+test-output/
+debug/
+tmp/
+logs/

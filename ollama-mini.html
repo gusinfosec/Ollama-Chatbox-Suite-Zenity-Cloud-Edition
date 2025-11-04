@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ollama Chatbox Suite – Zenity & Cloud Edition</title>
+  <link rel="icon" type="image/png" href="assets/icon.png">
+  <style>
+    body {background: radial-gradient(circle at 15% 10%, #151a1f, #0b0e10 70%);
+          color:#eee; font-family: monospace; display:flex; justify-content:center;
+          align-items:center; height:100vh; margin:0;}
+    #chatbox {width: 480px; height: 640px; background:#141618; border-radius:16px;
+              display:flex; flex-direction:column; overflow:hidden; position:relative;
+              box-shadow: 0 4px 30px rgba(0,0,0,.35), inset 0 0 18px rgba(255,255,255,.04);
+              border: 2px solid transparent;}
+    #chatbox::before {content:""; position:absolute; inset:0; border-radius:16px; padding:2px;
+                      background: linear-gradient(120deg,#00f5ff,#5ec4ff,#9fef00);
+                      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+                      -webkit-mask-composite: xor; mask-composite: exclude; pointer-events:none;}
+    #header {display:flex; align-items:center; gap:10px; background:linear-gradient(90deg,#0e1f26,#101214);
+             border-bottom:1px solid #2a2f33; padding:10px 14px; font-weight:bold; color:#9fef00;
+             text-shadow:0 0 4px rgba(159,239,0,.35); letter-spacing:.3px;}
+    #header img {width:22px; height:22px; filter: drop-shadow(0 0 3px #00f5ff);}
+    #header small {color:#5ec4ff; font-weight:normal; margin-left:auto; font-size:.8em;}
+    #chat {flex:1; overflow-y:auto; padding:.9rem; font-size:.92rem; line-height:1.45em;
+           white-space:pre-wrap; word-wrap:break-word;}
+    #controls {background:#0f1012; border-top:1px solid #2a2f33; display:flex; flex-direction:column; gap:.5rem; padding:.7rem;}
+    #upper {display:flex; gap:.4rem; align-items:center;}
+    select, input[type=file], input[type=text], button {background:#1b1d21; color:#eaeaea; border:none; border-radius:8px; padding:.45rem .6rem; font-size:.86rem;}
+    input[type=text]{flex:1;}
+    button:hover {background:#23262b; cursor:pointer;}
+    .you { color:#5ec4ff; margin-bottom:.45rem; background:rgba(0, 150, 255, 0.09); padding:.55rem; border-radius:8px; }
+    .model { color:#9fef00; margin-bottom:.9rem; background:rgba(159, 239, 0, 0.09); padding:.55rem; border-radius:8px; }
+    small { color:#9aa3ab; font-size:.75em; display:block; margin-top:.2rem; }
+  </style>
+</head>
+<body>
+<div id="chatbox">
+  <div id="header"><img src="assets/icon.png" alt="icon"><span>Ollama Chatbox Suite – Cloud Edition</span><small>Zenity | Terminal | Mini Chat</small></div>
+  <div id="chat"></div>
+  <div id="controls">
+    <div id="upper">
+      <select id="model">
+        <option>qwen3-vl</option><option>qwen3-coder</option><option>gpt-oss</option>
+        <option>nomic-embed-text</option><option>qwen3-vl:235b-cloud</option>
+      </select>
+      <input type="file" id="fileInput" multiple />
+    </div>
+    <div id="lower">
+      <input type="text" id="msg" placeholder="Type a message..." />
+      <button onclick="send()">Send</button>
+    </div>
+  </div>
+</div>
+<script>
+async function send(){
+  const chat=document.getElementById("chat");
+  const text=document.getElementById("msg").value.trim();
+  const model=document.getElementById("model").value;
+  const files=document.getElementById("fileInput").files;
+  if(!text && !files.length) return;
+  chat.innerHTML+=`<div class='you'><b>You:</b> ${text || '[file upload]'}<br>${[...files].map(f=>`<small>${f.name}</small>`).join('<br>')}</div>`;
+  document.getElementById("msg").value=""; document.getElementById("fileInput").value="";
+  let prompt=text;
+  for(const file of files){
+    const b64=await fileToBase64(file);
+    prompt+=`\n\n[File: ${file.name}] (base64 below)\n${b64}`;
+  }
+  try{
+    const res=await fetch("http://localhost:11434/api/generate",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({model,prompt,stream:false})
+    });
+    const data=await res.json();
+    if(data.response){ chat.innerHTML+=`<div class='model'><b>${model}:</b>\n${data.response}</div>`; }
+    else { chat.innerHTML+=`<div class='model'><b>${model}:</b> (no reply)</div>`; }
+  }catch(err){ chat.innerHTML+=`<div class='model'><b>Error:</b> ${err}</div>`; }
+  chat.scrollTop=chat.scrollHeight;
+}
+function fileToBase64(file){
+  return new Promise((resolve,reject)=>{
+    const r=new FileReader();
+    r.onload=()=>resolve(r.result.split(",")[1]);
+    r.onerror=reject;
+    r.readAsDataURL(file);
+  });
+}
+</script>
+</body>
+</html>
