@@ -1,9 +1,10 @@
 [Desktop Entry]
 Type=Application
-Name=Ollama Chatbox Suite
-Comment=Run Ollama Chatbox Suite – Zenity & Cloud Edition
-Exec=bash -c "~/Projects/Ollama-Chatbox-Suite-Zenity-Cloud-Edition/start-server.sh"
-Icon=/home/$USER/Projects/Ollama-Chatbox-Suite-Zenity-Cloud-Edition/assets/icon.png
+Name=Ollama Chatbox Suite – Zenity & Cloud Edition
+Comment=Run the Ollama Chatbox Suite with Zenity interface and local web server
+Exec=bash -c "./start-server.sh & ./ollama-chat.sh"
+Icon=assets/icon.png
 Terminal=false
-Categories=Utility;AI;
+Categories=Utility;AI;Chat;
+StartupNotify=true
 

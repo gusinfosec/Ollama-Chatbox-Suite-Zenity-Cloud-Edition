@@ -1,114 +1,92 @@
+ #!/bin/bash
+# Ollama Chatbox Suite – Zenity & Cloud Edition © 2025 Cyber Global Technologies LLC
 
-#!/usr/bin/env bash
-set -e
+BOLD='\033[1m'; RESET='\033[0m'; CYAN='\033[1;36m'; GREEN='\033[1;32m'; YELLOW='\033[1;33m'; BLUE='\033[1;34m'; GRAY='\033[0;37m'
 
-# Ollama Chatbox Suite — Zenity & Cloud Edition
-# Part of Cyber Global Technologies LLC (2025)
-
-# Colors
-BBLUE="\033[1;34m"; BWHITE="\033[1;37m"; GRAY="\033[0;37m"; RESET="\033[0m"
-
-MODELS_LOCAL=("phi3:mini" "gemma:2b")
-MODELS_CLOUD=("deepseek-v3.1:671b-cloud" "qwen3-vl:235b-cloud" "gpt-oss:20b-cloud")
-
-ICON_PATH="assets/icon.png"
-
-banner(){
-  echo -e "${BBLUE}┌──────────────────────────────────────────────────────────┐${RESET}"
-  echo -e "${BBLUE}│${RESET} 🤖  ${BWHITE}Ollama Chatbox Suite — Zenity & Cloud Edition${RESET}        ${BBLUE}│${RESET}"
-  echo -e "${BBLUE}│${RESET}     ${GRAY}Part of Cyber Global Technologies LLC (2025)${RESET}     ${BBLUE}│${RESET}"
-  echo -e "${BBLUE}└──────────────────────────────────────────────────────────┘${RESET}"
+draw_header() {
+  clear
+  local cols=$(tput cols 2>/dev/null || echo 80)
+  local width=$((cols < 80 ? 80 : cols))
+  local logo="🤖"
+  local title="Ollama Chatbox Suite — Zenity & Cloud Edition"
+  local pad=$(( (width - ${#title}) / 2 ))
+  echo -e "${BLUE}${BOLD}$(printf '=%.0s' $(seq 1 $width))${RESET}"
+  printf "%*s${CYAN}${BOLD}%s${RESET}\n" $pad "" "$title"
+  echo -e "${BLUE}${BOLD}$(printf '=%.0s' $(seq 1 $width))${RESET}\n"
 }
 
-has_zenity(){ command -v zenity >/dev/null 2>&1; }
-
-select_model_terminal(){
-  echo "Select a model:"
-  i=1
-  for m in "${MODELS_LOCAL[@]}"; do
-    printf "  %d) %s (local)\n" "$i" "$m"; i=$((i+1))
-  done
-  for m in "${MODELS_CLOUD[@]}"; do
-    printf "  %d) %s (cloud)\n" "$i" "$m"; i=$((i+1))
-  done
-  read -rp "Enter number: " choice
-  local idx=$((choice-1))
-  local all=( "${MODELS_LOCAL[@]}" "${MODELS_CLOUD[@]}" )
-  echo "${all[$idx]}"
-}
-
-select_model_zenity(){
-  local list=()
-  for m in "${MODELS_LOCAL[@]}"; do list+=("Local" "$m"); done
-  for m in "${MODELS_CLOUD[@]}"; do list+=("Cloud" "$m"); done
-  zenity --list     --title="Ollama Chatbox Suite — Cyber Global Technologies LLC"     --window-icon="${ICON_PATH}"     --text="Select a model. Cloud models require: ollama signin + ollama pull <model>"     --column="Type" --column="Model"     "${list[@]}" 2>/dev/null | awk -F'|' '{print $2}'
-}
-
-is_cloud_model(){
-  case "$1" in
-    *-cloud* ) return 0 ;;
-    *:671b-cloud* ) return 0 ;;
-    *:235b-cloud* ) return 0 ;;
-    *:20b-cloud* ) return 0 ;;
-    * ) return 1 ;;
-  esac
-}
-
-ensure_cloud_ready(){
-  local model="$1"
-  if is_cloud_model "$model"; then
-    echo "[info] Cloud model detected: $model"
-    echo "[info] Verifying account and pulling model if needed..."
-    if ! ollama pull "$model"; then
-      echo "[error] Could not pull cloud model. Make sure you've run: ollama signin"
-      exit 1
+check_ollama() {
+  if ! pgrep -x "ollama" >/dev/null; then
+    echo -e "${YELLOW}⚠️ Ollama is not running.${RESET}"
+    if command -v zenity >/dev/null 2>&1; then
+      zenity --question --title="Start Ollama?" --text="Ollama is not running. Start it now?" && ollama serve &
+    else
+      read -rp "$(echo -e "${YELLOW}Start Ollama now? [y/N]: ${RESET}")" yn
+      [[ "$yn" =~ ^[Yy]$ ]] && ollama serve &
     fi
   fi
 }
 
-chat_loop(){
-  local model="$1"
-  echo ""
-  echo "Commands: /switch (change model), /quit (exit)"
-  echo "--------------------------------------------------"
+select_model() {
+  if command -v zenity >/dev/null 2>&1; then
+    MODEL=$(zenity --list --title="🤖 Select Ollama Model" --text="Choose a model:" \
+      --width=420 --height=260 --column="Model" \
+      "phi3:mini" "gemma:2b" "deepseek-v3.1:671b-cloud" "qwen3-vl:235b-cloud" "gpt-oss:20b-cloud" --hide-header)
+  fi
+  [[ -z "$MODEL" ]] && MODEL="phi3:mini"
+}
+
+confirm_popup() {
+  local msg="$1"
+  if command -v zenity >/dev/null 2>&1; then
+    zenity --question --title="Confirm" --text="$msg" --width=360
+  else
+    read -rp "$(echo -e "${YELLOW}${msg} [y/N]: ${RESET}")" yn
+    [[ "$yn" =~ ^[Yy]$ ]]
+  fi
+}
+
+run_chat() {
+  echo -e "${GRAY}Chatting with model:${RESET} ${GREEN}${BOLD}$MODEL${RESET}"
+  echo -e "${GRAY}Commands:${RESET} ${YELLOW}:file <path>${GRAY}, ${YELLOW}:model${GRAY}, ${YELLOW}:stop${RESET}\n"
+
   while true; do
-    read -rp "> " prompt
-    case "$prompt" in
-      "/quit" ) exit 0 ;;
-      "/switch" )
-        model=$(choose_model)
-        ensure_cloud_ready "$model"
-        echo "[switched] Using model: $model"
+    echo -ne "${BLUE}${BOLD}You 💭:${RESET} "; IFS= read -er INPUT
+    case "$INPUT" in
+      :quit|:stop)
+        confirm_popup "Exit chat now?" && echo -e "${GRAY}👋 Bye!${RESET}" && exit 0
         ;;
-      * )
-        printf "%s" "$prompt" | ollama run "$model"
-        echo ""
+      :model)
+        echo -e "${YELLOW}🔁 Switching model...${RESET}"; select_model
+        echo -e "${CYAN}${BOLD}Now chatting with:${RESET} ${GREEN}${BOLD}$MODEL${RESET}\n"
+        ;;
+      :file*)
+        FILE=$(echo "$INPUT" | awk '{print $2}')
+        if [[ -f "$FILE" ]]; then
+          confirm_popup "Attach file?\n$FILE" && {
+            EXT="${FILE##*.}"
+            BASE64=$(base64 -w 0 "$FILE")
+            PROMPT+="\n\n[File: $FILE] ($EXT, base64 below)\n$BASE64"
+            echo -e "${YELLOW}📎 Attached:${RESET} $FILE"
+          }
+        else
+          echo -e "${YELLOW}⚠️ File not found:${RESET} $FILE"
+        fi
+        ;;
+      *)
+        PROMPT+="\n\n$INPUT"
+        echo -e "${GRAY}🤔 Thinking...${RESET}"
+        RESPONSE=$(ollama run "$MODEL" <<< "$PROMPT")
+        echo -e "\n${GREEN}${BOLD}🤖 $MODEL:${RESET}\n${GRAY}$(printf -- '-%.0s' $(seq 1 60))${RESET}\n$RESPONSE\n${GRAY}$(printf -- '-%.0s' $(seq 1 60))${RESET}\n"
+        PROMPT=""
         ;;
     esac
   done
 }
 
-choose_model(){
-  if has_zenity; then
-    local pick
-    pick=$(select_model_zenity)
-    if [[ -n "$pick" ]]; then
-      echo "$pick"; return 0
-    fi
-  fi
-  select_model_terminal
-}
+draw_header
+check_ollama
+select_model
+run_chat
 
-main(){
-  banner
-  local model
-  model=$(choose_model)
-  if [[ -z "$model" ]]; then
-    echo "No model selected. Exiting."
-    exit 1
-  fi
-  ensure_cloud_ready "$model"
-  chat_loop "$model"
-}
-
-main "$@"
+echo -e "\n${GRAY}© 2025 Cyber Global Technologies LLC${RESET}"
