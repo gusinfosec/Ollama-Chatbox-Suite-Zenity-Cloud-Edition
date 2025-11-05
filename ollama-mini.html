@@ -1,89 +1,114 @@
-<!DOCTYPE html>
+
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Ollama Chatbox Suite – Zenity & Cloud Edition</title>
-  <link rel="icon" type="image/png" href="assets/icon.png">
+  <meta charset="utf-8">
+  <title>Ollama Mini Chat — Zenity & Cloud Edition</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="assets/icon.png">
   <style>
-    body {background: radial-gradient(circle at 15% 10%, #151a1f, #0b0e10 70%);
-          color:#eee; font-family: monospace; display:flex; justify-content:center;
-          align-items:center; height:100vh; margin:0;}
-    #chatbox {width: 480px; height: 640px; background:#141618; border-radius:16px;
-              display:flex; flex-direction:column; overflow:hidden; position:relative;
-              box-shadow: 0 4px 30px rgba(0,0,0,.35), inset 0 0 18px rgba(255,255,255,.04);
-              border: 2px solid transparent;}
-    #chatbox::before {content:""; position:absolute; inset:0; border-radius:16px; padding:2px;
-                      background: linear-gradient(120deg,#00f5ff,#5ec4ff,#9fef00);
-                      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-                      -webkit-mask-composite: xor; mask-composite: exclude; pointer-events:none;}
-    #header {display:flex; align-items:center; gap:10px; background:linear-gradient(90deg,#0e1f26,#101214);
-             border-bottom:1px solid #2a2f33; padding:10px 14px; font-weight:bold; color:#9fef00;
-             text-shadow:0 0 4px rgba(159,239,0,.35); letter-spacing:.3px;}
-    #header img {width:22px; height:22px; filter: drop-shadow(0 0 3px #00f5ff);}
-    #header small {color:#5ec4ff; font-weight:normal; margin-left:auto; font-size:.8em;}
-    #chat {flex:1; overflow-y:auto; padding:.9rem; font-size:.92rem; line-height:1.45em;
-           white-space:pre-wrap; word-wrap:break-word;}
-    #controls {background:#0f1012; border-top:1px solid #2a2f33; display:flex; flex-direction:column; gap:.5rem; padding:.7rem;}
-    #upper {display:flex; gap:.4rem; align-items:center;}
-    select, input[type=file], input[type=text], button {background:#1b1d21; color:#eaeaea; border:none; border-radius:8px; padding:.45rem .6rem; font-size:.86rem;}
-    input[type=text]{flex:1;}
-    button:hover {background:#23262b; cursor:pointer;}
-    .you { color:#5ec4ff; margin-bottom:.45rem; background:rgba(0, 150, 255, 0.09); padding:.55rem; border-radius:8px; }
-    .model { color:#9fef00; margin-bottom:.9rem; background:rgba(159, 239, 0, 0.09); padding:.55rem; border-radius:8px; }
-    small { color:#9aa3ab; font-size:.75em; display:block; margin-top:.2rem; }
+    :root{
+      --bg:#0b0f14;--card:#0f1522;--line:#223049;--text:#e6edf3;--muted:#9fb0c3;--accent:#294463;
+    }
+    *{box-sizing:border-box}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial,sans-serif;background:var(--bg);color:var(--text);margin:0}
+    header{padding:16px 20px;background:linear-gradient(90deg,#0b0f14,#162131);border-bottom:1px solid #1f2a3a}
+    .wrap{max-width:920px;margin:0 auto;padding:20px}
+    .note{font-size:14px;color:var(--muted)}
+    h2{margin:0 0 4px 0}
+    .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+    select,textarea,input,button{background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px}
+    textarea{width:100%;height:140px;resize:vertical}
+    button{cursor:pointer}
+    .chat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;min-height:240px;white-space:pre-wrap}
+    .bubble{padding:10px 12px;border-radius:10px;margin:8px 0}
+    .user{background:#18324b}
+    .bot{background:#14263a}
+    footer{ text-align:center;font-size:13px;color:#7a8b9a;padding:16px 0;border-top:1px solid #1f2a3a;margin-top:30px; }
+    .group{border:1px dashed var(--line);padding:10px;border-radius:10px}
+    label{color:var(--muted);font-size:14px}
   </style>
 </head>
 <body>
-<div id="chatbox">
-  <div id="header"><img src="assets/icon.png" alt="icon"><span>Ollama Chatbox Suite – Cloud Edition</span><small>Zenity | Terminal | Mini Chat</small></div>
-  <div id="chat"></div>
-  <div id="controls">
-    <div id="upper">
-      <select id="model">
-        <option>qwen3-vl</option><option>qwen3-coder</option><option>gpt-oss</option>
-        <option>nomic-embed-text</option><option>qwen3-vl:235b-cloud</option>
-      </select>
-      <input type="file" id="fileInput" multiple />
+  <header>
+    <div class="wrap">
+      <h2>💬 Ollama Mini Chat</h2>
+      <div class="note">Cloud models require <code>ollama signin</code> and a prior <code>ollama pull &lt;model&gt;</code>.</div>
     </div>
-    <div id="lower">
-      <input type="text" id="msg" placeholder="Type a message..." />
-      <button onclick="send()">Send</button>
+  </header>
+
+  <div class="wrap">
+    <div class="row group">
+      <div>
+        <label for="model">Model</label><br>
+        <select id="model">
+          <optgroup label="🖥️ Local Models">
+            <option>phi3:mini</option>
+            <option>gemma:2b</option>
+          </optgroup>
+          <optgroup label="☁️ Cloud Models">
+            <option>deepseek-v3.1:671b-cloud</option>
+            <option>qwen3-vl:235b-cloud</option>
+            <option>gpt-oss:20b-cloud</option>
+          </optgroup>
+        </select>
+      </div>
+      <button onclick="clearChat()">Clear</button>
+    </div>
+
+    <div id="chat" class="chat"></div>
+
+    <div class="row">
+      <textarea id="input" placeholder="Type your message..."></textarea>
+    </div>
+    <div class="row">
+      <button onclick="sendMessage()">Send</button>
     </div>
   </div>
-</div>
+
+  <footer>
+    <p>Part of the <strong>Cyber Global Technologies LLC</strong> ecosystem — secure, practical, human-focused AI tools.</p>
+  </footer>
+
 <script>
-async function send(){
-  const chat=document.getElementById("chat");
-  const text=document.getElementById("msg").value.trim();
-  const model=document.getElementById("model").value;
-  const files=document.getElementById("fileInput").files;
-  if(!text && !files.length) return;
-  chat.innerHTML+=`<div class='you'><b>You:</b> ${text || '[file upload]'}<br>${[...files].map(f=>`<small>${f.name}</small>`).join('<br>')}</div>`;
-  document.getElementById("msg").value=""; document.getElementById("fileInput").value="";
-  let prompt=text;
-  for(const file of files){
-    const b64=await fileToBase64(file);
-    prompt+=`\n\n[File: ${file.name}] (base64 below)\n${b64}`;
-  }
-  try{
-    const res=await fetch("http://localhost:11434/api/generate",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({model,prompt,stream:false})
+async function sendMessage(){
+  const chat = document.getElementById('chat');
+  const input = document.getElementById('input');
+  const model = document.getElementById('model').value;
+  const prompt = input.value.trim();
+  if(!prompt) return;
+
+  appendBubble(prompt, 'user');
+  input.value='';
+
+  try {
+    const res = await fetch('http://localhost:11434/api/generate', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ model, prompt, stream: false })
     });
-    const data=await res.json();
-    if(data.response){ chat.innerHTML+=`<div class='model'><b>${model}:</b>\n${data.response}</div>`; }
-    else { chat.innerHTML+=`<div class='model'><b>${model}:</b> (no reply)</div>`; }
-  }catch(err){ chat.innerHTML+=`<div class='model'><b>Error:</b> ${err}</div>`; }
-  chat.scrollTop=chat.scrollHeight;
+    if(!res.ok){
+      appendBubble('Error: '+res.status+' — ensure `ollama serve` is running and the model is installed/pulled.', 'bot');
+      return;
+    }
+    const data = await res.json();
+    appendBubble(data.response || '[no response]', 'bot');
+  } catch(err){
+    appendBubble('Request failed: '+err.message, 'bot');
+  }
 }
-function fileToBase64(file){
-  return new Promise((resolve,reject)=>{
-    const r=new FileReader();
-    r.onload=()=>resolve(r.result.split(",")[1]);
-    r.onerror=reject;
-    r.readAsDataURL(file);
-  });
+
+function appendBubble(text, who){
+  const div = document.createElement('div');
+  div.className = 'bubble '+(who==='user'?'user':'bot');
+  div.textContent = text;
+  const box = document.getElementById('chat');
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
+
+function clearChat(){
+  document.getElementById('chat').innerHTML='';
 }
 </script>
 </body>
