@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/ollama-suite-banner.png" alt="Ollama Chatbox Suite Banner" width="720"/>
+</p>
+
 # 💬 Ollama Chatbox Suite — Zenity & Cloud Edition  
 **Part of the Cyber Global Technologies ecosystem**  
 Seamlessly chat with local or cloud-based Ollama models using Zenity, Terminal, or your browser.
@@ -96,7 +100,8 @@ Ollama-Chatbox-Suite-Zenity-Cloud-Edition/
 ├── ollama-mini.html
 ├── ollama-suite.desktop
 ├── assets/
-│   └── icon.png
+│   ├── icon.png
+│   └── ollama-suite-banner.png
 └── LICENSE.md
 ```
 
