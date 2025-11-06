@@ -86,7 +86,7 @@ Then open your browser at
 | Edition | Description | Access | Price |
 |----------|--------------|--------|------:|
 | **Free Edition** | Local + Cloud chat (Zenity, Terminal, Web) | GitHub / Public | **Free** |
-| **Pro Edition** | Enhanced launcher, icon set, one-click setup | [Ko-fi](https://ko-fi.com/s/6b2818394b) | **$29 one-time** |
+| **Pro Edition** | Enhanced launcher, icon set, one-click setup | [Ko-fi](https://ko-fi.com/s/6b2818394b) | **$39 one-time** |
 | **Enterprise Access** | Complimentary with **Compliance AI Enterprise Plan** | [Compliance AI via Stripe](https://compliance.cyberlaboratory.cc) | **Included** |
 
 > 💡 Compliance AI Enterprise subscribers automatically receive the Ollama Chatbox Pro bundle and priority updates.
